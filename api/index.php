@@ -62,6 +62,11 @@ if (!getenv('CACHE_STORE')) {
     $_ENV['CACHE_STORE'] = 'array';
 }
 
+if (!getenv('APP_MAINTENANCE_DRIVER')) {
+    putenv('APP_MAINTENANCE_DRIVER=file');
+    $_ENV['APP_MAINTENANCE_DRIVER'] = 'file';
+}
+
 // Ensure SQLite database exists in /tmp if using sqlite default
 $dbConnection = getenv('DB_CONNECTION') ?: 'sqlite';
 if ($dbConnection === 'sqlite') {
