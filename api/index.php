@@ -16,7 +16,32 @@ foreach ($dirs as $dir) {
     }
 }
 
-// 2. Set default environment variables for Vercel Serverless if missing
+// 2. Redirect all Laravel bootstrap cache files to /tmp/storage/bootstrap/cache/
+putenv('APP_STORAGE_PATH=' . $storagePath);
+$_ENV['APP_STORAGE_PATH'] = $storagePath;
+
+putenv('APP_SERVICES_CACHE=' . $storagePath . '/bootstrap/cache/services.php');
+$_ENV['APP_SERVICES_CACHE'] = $storagePath . '/bootstrap/cache/services.php';
+
+putenv('APP_PACKAGES_CACHE=' . $storagePath . '/bootstrap/cache/packages.php');
+$_ENV['APP_PACKAGES_CACHE'] = $storagePath . '/bootstrap/cache/packages.php';
+
+putenv('APP_CONFIG_CACHE=' . $storagePath . '/bootstrap/cache/config.php');
+$_ENV['APP_CONFIG_CACHE'] = $storagePath . '/bootstrap/cache/config.php';
+
+putenv('APP_ROUTES_CACHE=' . $storagePath . '/bootstrap/cache/routes.php');
+$_ENV['APP_ROUTES_CACHE'] = $storagePath . '/bootstrap/cache/routes.php';
+
+putenv('APP_EVENTS_CACHE=' . $storagePath . '/bootstrap/cache/events.php');
+$_ENV['APP_EVENTS_CACHE'] = $storagePath . '/bootstrap/cache/events.php';
+
+putenv('VIEW_COMPILED_PATH=' . $storagePath . '/framework/views');
+$_ENV['VIEW_COMPILED_PATH'] = $storagePath . '/framework/views';
+
+putenv('LOG_CHANNEL=stderr');
+$_ENV['LOG_CHANNEL'] = 'stderr';
+
+// 3. Set default environment variables for Vercel Serverless if missing
 if (!getenv('APP_KEY')) {
     putenv('APP_KEY=base64:SgE22naQZwWTFThw6dmOgBXkXRWlYvLiZix3KVYD+yk=');
     $_ENV['APP_KEY'] = 'base64:SgE22naQZwWTFThw6dmOgBXkXRWlYvLiZix3KVYD+yk=';
@@ -37,12 +62,6 @@ if (!getenv('CACHE_STORE')) {
     $_ENV['CACHE_STORE'] = 'array';
 }
 
-putenv('VIEW_COMPILED_PATH=' . $storagePath . '/framework/views');
-$_ENV['VIEW_COMPILED_PATH'] = $storagePath . '/framework/views';
-
-putenv('LOG_CHANNEL=stderr');
-$_ENV['LOG_CHANNEL'] = 'stderr';
-
 // Ensure SQLite database exists in /tmp if using sqlite default
 $dbConnection = getenv('DB_CONNECTION') ?: 'sqlite';
 if ($dbConnection === 'sqlite') {
@@ -57,19 +76,19 @@ if ($dbConnection === 'sqlite') {
 try {
     define('LARAVEL_START', microtime(true));
 
-    // 3. Register Composer autoloader
+    // 4. Register Composer autoloader
     if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
-        throw new \Exception("Composer vendor directory missing. vendor/autoload.php not found at " . realpath(__DIR__ . '/..'));
+        throw new \Exception("Composer vendor directory missing. vendor/autoload.php not found.");
     }
     require __DIR__ . '/../vendor/autoload.php';
 
-    // 4. Bootstrap Laravel application
+    // 5. Bootstrap Laravel application
     $app = require_once __DIR__ . '/../bootstrap/app.php';
 
-    // 5. Direct Laravel to use /tmp for storage
+    // 6. Direct Laravel to use /tmp for storage
     $app->useStoragePath($storagePath);
 
-    // 6. Handle HTTP Request
+    // 7. Handle HTTP Request
     $app->handleRequest(\Illuminate\Http\Request::capture());
 } catch (\Throwable $e) {
     http_response_code(500);
@@ -82,4 +101,5 @@ try {
     echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
     echo "</body></html>";
 }
+
 
