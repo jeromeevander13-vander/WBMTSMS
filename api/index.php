@@ -22,6 +22,11 @@ if (!getenv('APP_KEY')) {
     $_ENV['APP_KEY'] = 'base64:SgE22naQZwWTFThw6dmOgBXkXRWlYvLiZix3KVYD+yk=';
 }
 
+if (getenv('APP_DEBUG') === false) {
+    putenv('APP_DEBUG=true');
+    $_ENV['APP_DEBUG'] = 'true';
+}
+
 if (!getenv('SESSION_DRIVER')) {
     putenv('SESSION_DRIVER=cookie');
     $_ENV['SESSION_DRIVER'] = 'cookie';
