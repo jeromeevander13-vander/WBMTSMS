@@ -67,6 +67,17 @@ if (!getenv('APP_MAINTENANCE_DRIVER')) {
     $_ENV['APP_MAINTENANCE_DRIVER'] = 'file';
 }
 
+// Dynamic APP_URL and ASSET_URL for Vercel environment
+$protocol = (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? $_SERVER['SERVER_NAME'] ?? 'localhost';
+$currentAppUrl = $protocol . '://' . $host;
+
+putenv('APP_URL=' . $currentAppUrl);
+$_ENV['APP_URL'] = $currentAppUrl;
+
+putenv('ASSET_URL=' . $currentAppUrl);
+$_ENV['ASSET_URL'] = $currentAppUrl;
+
 // Ensure SQLite database exists in /tmp if using sqlite default
 $dbConnection = getenv('DB_CONNECTION') ?: 'sqlite';
 if ($dbConnection === 'sqlite') {
