@@ -54,16 +54,32 @@ if ($dbConnection === 'sqlite') {
     $_ENV['DB_DATABASE'] = $dbFile;
 }
 
-define('LARAVEL_START', microtime(true));
+try {
+    define('LARAVEL_START', microtime(true));
 
-// 3. Register Composer autoloader
-require __DIR__ . '/../vendor/autoload.php';
+    // 3. Register Composer autoloader
+    if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
+        throw new \Exception("Composer vendor directory missing. vendor/autoload.php not found at " . realpath(__DIR__ . '/..'));
+    }
+    require __DIR__ . '/../vendor/autoload.php';
 
-// 4. Bootstrap Laravel application
-$app = require_once __DIR__ . '/../bootstrap/app.php';
+    // 4. Bootstrap Laravel application
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
 
-// 5. Direct Laravel to use /tmp for storage
-$app->useStoragePath($storagePath);
+    // 5. Direct Laravel to use /tmp for storage
+    $app->useStoragePath($storagePath);
 
-// 6. Handle HTTP Request
-$app->handleRequest(\Illuminate\Http\Request::capture());
+    // 6. Handle HTTP Request
+    $app->handleRequest(\Illuminate\Http\Request::capture());
+} catch (\Throwable $e) {
+    http_response_code(500);
+    header('Content-Type: text/html; charset=utf-8');
+    echo "<!DOCTYPE html><html><head><title>Vercel Laravel Error</title><style>body{font-family:sans-serif;padding:30px;background:#18181b;color:#f4f4f5;}h1{color:#ef4444;}pre{background:#27272a;padding:15px;border-radius:8px;overflow-x:auto;}</style></head><body>";
+    echo "<h1>Laravel Runtime Exception</h1>";
+    echo "<p><strong>Message:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
+    echo "<p><strong>File:</strong> " . htmlspecialchars($e->getFile()) . " <strong>(Line " . $e->getLine() . ")</strong></p>";
+    echo "<h3>Stack Trace:</h3>";
+    echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+    echo "</body></html>";
+}
+
